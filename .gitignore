@@ -1,0 +1,38 @@
+# Dependencias de Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Configuración y Secretos (Muy importante por seguridad)
+.env
+config/config.json
+
+# Archivos de entorno de Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+.pytest_cache/
+
+# Modelos de Machine Learning (Archivos pesados)
+# Es mejor no subirlos al repo si pesan más de 50MB
+ml/*.pkl
+ml/*.h5
+ml/*.joblib
+
+# Logs y Datos temporales
+logs/
+*.log
+npm-debug.log*
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+
+# Otros
+dist/
+build/
+.vscode/
