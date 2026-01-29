@@ -14,14 +14,11 @@ def main():
         input_data = json.loads(sys.argv[1])
         
         # 2. Cargar el modelo .pkl
-        # Asegúrate de que el nombre del archivo coincida con el tuyo
         model_path = os.path.join(os.path.dirname(__file__), 'modelo_valoracion.pkl')
         
         if not os.path.exists(model_path):
-            # Si no existe el pkl, devolvemos un valor simulado para no romper el flujo
-            # pero avisamos en el log
             resultado = {
-                "valor": float(input_data['area']) * 1100, # Lógica simple de respaldo
+                "valor": float(input_data['area']) * 1100, 
                 "recomendacion": "Validar archivo .pkl",
                 "status": "warning"
             }
@@ -29,7 +26,6 @@ def main():
             model = joblib.load(model_path)
             
             # 3. Preparar el DataFrame para la predicción
-            # Los nombres de las columnas deben ser iguales a como entrenaste el modelo
             df = pd.DataFrame([input_data])
             
             # 4. Realizar la predicción
