@@ -23,6 +23,12 @@ exports.estimarValor = async (req, res) => {
 
     res.status(200).json(nuevaConsulta);
   } catch (error) {
-    res.status(500).send({ message: "Error al procesar la estimación IA." });
+    console.error('ERROR DETALLADO en estimarValor:', error.message);  // ← importante
+    console.error(error.stack);  // ← muestra la línea exacta
+    res.status(500).json({ 
+      message: "Error al procesar la estimación IA.", 
+      error: error.message,          // ← envía al frontend
+      stack: error.stack.substring(0, 300)  // ← solo primeras líneas para no exponer todo
+    });
   }
 };
