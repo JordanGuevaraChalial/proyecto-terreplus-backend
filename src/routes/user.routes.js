@@ -1,25 +1,44 @@
 const authJwt = require("../middleware/authJwt");
 const controller = require("../controllers/history.controller");
+const userController = require("../controllers/user.controller"); 
+const factorController = require("../controllers/factor.controller");
 
 module.exports = function(app) {
-  // Ver historial de valoraciones del usuario logueado
+  // Rutas existentes de historial
   app.get(
     "/api/user/history",
     [authJwt.verifyToken],
     controller.obtenerHistorialUsuario
   );
 
-  // Ver detalle de una valoración específica (incluyendo factores)
   app.get(
     "/api/user/history/:id",
     [authJwt.verifyToken],
     controller.obtenerDetalleConsulta
   );
 
-  // Eliminar una consulta del historial
   app.delete(
     "/api/user/history/:id",
     [authJwt.verifyToken],
     controller.eliminarConsulta
+  );
+
+  //Actualizar perfil del usuario logueado
+  app.put(
+    "/api/user/profile",
+    [authJwt.verifyToken],
+    userController.actualizarPerfil
+  );
+
+  // Obtener datos del perfil actual (útil para mostrar en frontend)
+  app.get(
+    "/api/user/profile",
+    [authJwt.verifyToken],
+    userController.obtenerPerfil
+  );
+  app.get(
+    '/api/consultas/:consultaId/factors', 
+    [authJwt.verifyToken], 
+    factorController.obtenerFactoresDeConsulta
   );
 };

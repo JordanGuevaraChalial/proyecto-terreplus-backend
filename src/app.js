@@ -25,6 +25,7 @@ require('./routes/auth.routes')(app);
 require('./routes/terrain.routes')(app);
 require('./routes/ml.routes')(app);
 require('./routes/user.routes')(app);
+require('./routes/factor.routes')(app);
 
 // Middleware para manejo de rutas no encontradas (404)
 app.use((req, res) => {

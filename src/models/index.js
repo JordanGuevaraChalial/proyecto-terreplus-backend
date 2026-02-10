@@ -4,6 +4,7 @@ const Terrain = require('./Terrain');
 const ModeloML = require('./ModeloML');
 const Factor = require('./Factor');
 const Consulta = require('./Consulta');
+const ConsultaFactor = require('./ConsultaFactor');
 
 // 1. Un Usuario realiza muchas Consultas
 User.hasMany(Consulta, { foreignKey: 'usuario_id', as: 'mis_consultas' });
@@ -19,12 +20,15 @@ Consulta.belongsTo(ModeloML, { foreignKey: 'modelo_ml_id' });
 
 // 4. Una Consulta detalla varios Factores (Relación Muchos a Muchos con tabla intermedia)
 Consulta.belongsToMany(Factor, { 
-  through: 'consulta_detalles_factor',
-  foreignKey: 'consulta_id'
+  through: ConsultaFactor,
+  foreignKey: 'consulta_id',
+  otherKey: 'factor_id'
 });
+
 Factor.belongsToMany(Consulta, { 
-  through: 'consulta_detalles_factor',
-  foreignKey: 'factor_id'
+  through: ConsultaFactor,
+  foreignKey: 'factor_id',
+  otherKey: 'consulta_id'
 });
 
 const syncDatabase = async () => {
@@ -43,6 +47,7 @@ module.exports = {
   ModeloML,
   Factor,
   Consulta,
+  ConsultaFactor,
   syncDatabase,
   sequelize
 };
