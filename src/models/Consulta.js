@@ -7,7 +7,7 @@ const Consulta = sequelize.define('Consulta', {
   valor_estimado_hectarea: { type: DataTypes.DECIMAL(15, 2), allowNull: false },
   uso_recomendado: { type: DataTypes.STRING },
   precision_modelo: { type: DataTypes.DECIMAL(5, 4) },
-  factores_csv: { type: DataTypes.TEXT } // Para el método exportarFactoresCSV()
+  factores_csv: { type: DataTypes.TEXT } 
 }, { tableName: 'consultas', timestamps: false });
 
 module.exports = Consulta;

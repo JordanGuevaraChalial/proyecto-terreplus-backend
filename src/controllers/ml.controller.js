@@ -1,34 +1,48 @@
 const { Consulta, Terrain, ModeloML } = require('../models');
-// Aquí importarías el servicio de Python más adelante
+const estimationService = require('../services/estimacion.service');
 
 exports.estimarValor = async (req, res) => {
   try {
-    const { terreno_id, modelo_id } = req.body;
+    const { terreno_id, modelo_id = 1 } = req.body;
 
-    // 1. Buscar datos del terreno
+    if (!terreno_id) {
+      return res.status(400).json({ message: "terreno_id es obligatorio" });
+    }
+
+    // 1. Buscar el terreno
     const terreno = await Terrain.findByPk(terreno_id);
-    
-    // 2. Aquí llamarías a python.service.js para obtener la predicción real
-    const valorSimulado = 5500.25; // Simulación mientras conectamos el .pkl
+    if (!terreno) {
+      return res.status(404).json({ message: "Terreno no encontrado" });
+    }
 
-    // 3. Crear la Consulta (Historial) según el UML
-    const nuevaConsulta = await Consulta.create({
-      usuario_id: req.userId,
-      terreno_id: terreno.id,
-      modelo_ml_id: modelo_id,
-      valor_estimado_hectarea: valorSimulado,
-      uso_recomendado: "Cultivo de ciclo corto",
-      precision_modelo: 0.94
+    // 2. VERIFICACIÓN DE PROPIEDAD: ¿el usuario ya consultó este terreno antes?
+    const consultaExistente = await Consulta.findOne({
+      where: {
+        usuario_id: req.userId,
+        terreno_id: terreno_id
+      }
     });
 
+    if (!consultaExistente) {
+      return res.status(403).json({ 
+        message: "Este terreno no te pertenece o aún no lo has consultado" 
+      });
+    }
+
+    // 3. Proceder con la estimación real
+    const nuevaConsulta = await estimationService.estimarValor(
+      terreno_id,
+      modelo_id,
+      req.userId
+    );
+
     res.status(200).json(nuevaConsulta);
+
   } catch (error) {
-    console.error('ERROR DETALLADO en estimarValor:', error.message);  // ← importante
-    console.error(error.stack);  // ← muestra la línea exacta
+    console.error('ERROR en estimarValor:', error.message, error.stack);
     res.status(500).json({ 
-      message: "Error al procesar la estimación IA.", 
-      error: error.message,          // ← envía al frontend
-      stack: error.stack.substring(0, 300)  // ← solo primeras líneas para no exponer todo
+      message: "Error al procesar la estimación IA", 
+      error: error.message 
     });
   }
 };

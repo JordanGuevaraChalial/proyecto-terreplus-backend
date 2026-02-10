@@ -19,11 +19,11 @@ Consulta.belongsTo(ModeloML, { foreignKey: 'modelo_ml_id' });
 
 // 4. Una Consulta detalla varios Factores (Relación Muchos a Muchos con tabla intermedia)
 Consulta.belongsToMany(Factor, { 
-  through: 'consulta_detalles_factores',
+  through: 'consulta_detalles_factor',
   foreignKey: 'consulta_id'
 });
 Factor.belongsToMany(Consulta, { 
-  through: 'consulta_detalles_factores',
+  through: 'consulta_detalles_factor',
   foreignKey: 'factor_id'
 });
 
