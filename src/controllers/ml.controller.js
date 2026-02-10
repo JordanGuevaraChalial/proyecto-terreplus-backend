@@ -9,13 +9,13 @@ exports.estimarValor = async (req, res) => {
       return res.status(400).json({ message: "terreno_id es obligatorio" });
     }
 
-    // 1. Buscar el terreno
     const terreno = await Terrain.findByPk(terreno_id);
     if (!terreno) {
       return res.status(404).json({ message: "Terreno no encontrado" });
     }
 
-    // 2. VERIFICACIÓN DE PROPIEDAD: ¿el usuario ya consultó este terreno antes?
+    // Comentamos o eliminamos la validación para permitir la primera estimación
+    /*
     const consultaExistente = await Consulta.findOne({
       where: {
         usuario_id: req.userId,
@@ -28,8 +28,9 @@ exports.estimarValor = async (req, res) => {
         message: "Este terreno no te pertenece o aún no lo has consultado" 
       });
     }
+    */
 
-    // 3. Proceder con la estimación real
+    // Proceder con la estimación real
     const nuevaConsulta = await estimationService.estimarValor(
       terreno_id,
       modelo_id,

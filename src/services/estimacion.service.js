@@ -22,13 +22,15 @@ exports.estimarValor = async (terrenoId, modeloId, usuarioId) => {
 
   // 4. Crear registro en el historial (Clase Consulta)
   const nuevaConsulta = await Consulta.create({
-    usuario_id: usuarioId,
-    terreno_id: terrenoId,
-    modelo_ml_id: modeloId,
-    valor_estimado_hectarea: resultadoIA.valor,
-    uso_recomendado: resultadoIA.recomendacion,
-    precision_modelo: 0.94 // Ejemplo de precisión estática
-  });
+  usuario_id: usuarioId,
+  terreno_id: terrenoId,
+  modelo_ml_id: modeloId,
+  fecha: new Date(),
+  valor_estimado_hectarea: resultadoIA.valor,
+  uso_recomendado: resultadoIA.recomendacion || "Cultivo optimizado",
+  precision_modelo: resultadoIA.precision || 0.94,  
+  factores_csv: resultadoIA.factores || null       
+});
 
   return nuevaConsulta;
 };
