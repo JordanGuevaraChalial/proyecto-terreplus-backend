@@ -19,35 +19,26 @@ exports.crearTerreno = async (req, res) => {
 
 exports.obtenerMisTerrenos = async (req, res) => {
   try {
-    // req.userId viene del middleware authJwt.verifyToken
     const terrenos = await Terrain.findAll({
-      where: { 
-        // En una relación muchos a muchos o si el terreno tiene dueño:
-        // Si añadiste usuario_id al modelo Terrain, filtramos así:
-        usuario_id: req.userId 
-      },
-      include: [
-        {
-          model: Consulta,
-          attributes: ['valor_estimado_hectarea', 'fecha'],
-          limit: 1,
-          order: [['fecha', 'DESC']]
-        }
-      ],
+      include: [{
+        model: Consulta,
+        where: { usuario_id: req.userId },  
+        attributes: ['valor_estimado_hectarea', 'fecha'],
+        limit: 1,
+        order: [['fecha', 'DESC']]
+      }],
       order: [['id', 'DESC']]
     });
 
     if (!terrenos || terrenos.length === 0) {
       return res.status(200).json({ 
-        message: "No tienes terrenos registrados.", 
+        message: "No tienes terrenos registrados o consultados.", 
         data: [] 
       });
     }
 
     res.status(200).json(terrenos);
   } catch (error) {
-    res.status(500).send({ 
-      message: "Error al obtener la lista de terrenos: " + error.message 
-    });
+    res.status(500).send({ message: "Error al obtener la lista de terrenos: " + error.message });
   }
 };
