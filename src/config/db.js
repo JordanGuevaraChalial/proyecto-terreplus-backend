@@ -1,28 +1,42 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Railway suele proporcionar DATABASE_URL. Es más limpio usarla directamente.
-const sequelize = new Sequelize(process.env.DATABASE_URL || {
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+let sequelize;
+
+if (process.env.DATABASE_URL) {
+  // Si existe DATABASE_URL (Caso Railway)
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-}, {
-    logging: false, // Cambiar a true si necesitas debuguear
+    logging: false,
     dialectOptions: {
-      useUTC: false,
-      ssl: process.env.NODE_ENV === 'production' ? {
+      ssl: {
         require: true,
-        rejectUnauthorized: false // Crucial para Railway
-      } : false
+        rejectUnauthorized: false
+      }
     },
     define: {
       timestamps: true,
       underscored: true,
     }
-});
+  });
+} else {
+  // Si NO existe (Caso Local) usa las variables individuales
+  sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      dialect: 'postgres',
+      logging: true,
+      define: {
+        timestamps: true,
+        underscored: true,
+      }
+    }
+  );
+}
 
 const checkConnection = async () => {
   try {
