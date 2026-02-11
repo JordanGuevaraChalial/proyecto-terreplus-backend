@@ -4,6 +4,15 @@ const morgan = require('morgan');
 
 const app = express();
 
+app.get('/healthcheck', (req, res) => res.send('OK'));
+
+try {
+    console.log("🛠️ Intentando cargar rutas de Auth...");
+    require('./routes/auth.routes')(app);
+    console.log("Rutas de Auth cargadas en el código.");
+} catch (error) {
+    console.error("ERROR AL CARGAR RUTAS DE AUTH:", error.message);
+}
 // Middlewares Globales
 app.use(cors());
 app.use(morgan('dev'));
