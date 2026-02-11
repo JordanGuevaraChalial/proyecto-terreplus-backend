@@ -49,3 +49,24 @@ exports.obtenerMisTerrenos = async (req, res) => {
     res.status(500).json({ message: "Error al obtener la lista de terrenos: " + error.message });
   }
 };
+exports.obtenerTodosTerrenos = async (req, res) => {
+  try {
+    const terrenos = await Terrain.findAll({
+      attributes: [
+        'id', 
+        'nombre', 
+        'tipo_suelo', 
+        'area',
+        [sequelize.fn('ST_AsGeoJSON', sequelize.col('ubicacion')), 'ubicacion']
+      ]
+    });
+
+    if (!terrenos || terrenos.length === 0) {
+      return res.status(404).send({ message: "No se encontraron terrenos." });
+    }
+
+    res.status(200).send(terrenos);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};

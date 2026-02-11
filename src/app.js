@@ -27,7 +27,7 @@ require('./routes/dashboard.routes')(app);
 // --- LOG DE DEPURACIÓN ---
 setTimeout(() => {
     if (app._router && app._router.stack) {
-        console.log("🚀 RUTAS REGISTRADAS EN EL SISTEMA:");
+        console.log("RUTAS REGISTRADAS EN EL SISTEMA:");
         app._router.stack.forEach(r => {
             if (r.route) {
                 console.log(`- [${Object.keys(r.route.methods).join(',').toUpperCase()}] ${r.route.path}`);
