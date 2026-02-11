@@ -33,11 +33,17 @@ Factor.belongsToMany(Consulta, {
 
 const syncDatabase = async () => {
   try {
-    // alter: true sincroniza cambios sin borrar datos si es posible
+    // 1. Activamos PostGIS (Esto soluciona el error de type "geometry")
+    await sequelize.query('CREATE EXTENSION IF NOT EXISTS postgis;');
+    console.log('🌍 PostGIS: Extensión verificada/activada.');
+
+    // 2. Sincronizamos las tablas
+    // Usamos { alter: true } para que actualice las tablas existentes sin borrarlas
     await sequelize.sync({ alter: true });
-    console.log("Modelos sincronizados con la DB (PostgreSQL + PostGIS)");
+    console.log('✅ Tablas sincronizadas correctamente.');
   } catch (error) {
-    console.error("Error al sincronizar la base de datos:", error);
+    console.error('❌ Error en syncDatabase:', error.message);
+    throw error; // Es importante lanzar el error para que el servidor no finja que todo está bien
   }
 };
 
