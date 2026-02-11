@@ -13,7 +13,7 @@ const checkDuplicateEmail = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(500).send({ message: "Error al validar el registro." });
+    res.status(500).send({ message: error.message});
   }
 };
 
