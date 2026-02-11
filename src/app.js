@@ -31,5 +31,8 @@ require('./routes/factor.routes')(app);
 app.use((req, res) => {
   res.status(404).json({ message: "La ruta solicitada no existe." });
 });
-
+console.log("Rutas registradas:");
+app._router.stack.forEach(r => {
+  if (r.route) console.log(`- [${Object.keys(r.route.methods)}] ${r.route.path}`);
+});
 module.exports = app;
