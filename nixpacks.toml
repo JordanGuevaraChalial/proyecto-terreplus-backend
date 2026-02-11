@@ -2,7 +2,12 @@
 nixPkgs = ["python311", "python311Packages.pip", "nodejs_20"]
 
 [phases.install]
-cmds = ["npm install", "pip install --upgrade pip", "pip install -r requirements.txt"]
+# Añadimos el flag --break-system-packages para permitir la instalación en el entorno de Nix
+cmds = [
+    "npm install", 
+    "pip install --upgrade pip --break-system-packages", 
+    "pip install -r requirements.txt --break-system-packages"
+]
 
 [start]
 cmd = "npm start"
