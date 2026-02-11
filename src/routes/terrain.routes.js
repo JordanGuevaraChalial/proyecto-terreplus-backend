@@ -15,4 +15,10 @@ module.exports = function(app) {
     [authJwt.verifyToken],
     controller.obtenerMisTerrenos
   );
+  // Obtener todos los terrenos (públicos y privados del usuario)
+  app.get(
+    "/api/terrain/all",
+    [authJwt.verifyToken],
+    controller.obtenerTodosTerrenos
+  );
 };
