@@ -13,6 +13,6 @@ module.exports = function(app) {
   app.get(
     "/api/ml/stats-zones",
     [authJwt.verifyToken],
-    require("../controllers/dashboard.controller").obtenerEstadisticasZonas
+    require("../controllers/dashboard.controller").obtenerDashboard
   );
 };
