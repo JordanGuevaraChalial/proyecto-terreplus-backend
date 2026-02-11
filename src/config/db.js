@@ -1,34 +1,35 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Configuración de la conexión
-const sequelize = new Sequelize(
-  process.env.DB_NAME, 
-  process.env.DB_USER, 
-  process.env.DB_PASSWORD, 
-  {
+// Railway suele proporcionar DATABASE_URL. Es más limpio usarla directamente.
+const sequelize = new Sequelize(process.env.DATABASE_URL || {
+    database: process.env.DB_NAME,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'postgres',
-    logging: true,
+}, {
+    logging: false, // Cambiar a true si necesitas debuguear
     dialectOptions: {
-      // Importante para asegurar compatibilidad con versiones de Postgres
-      useUTC: false, 
+      useUTC: false,
+      ssl: process.env.NODE_ENV === 'production' ? {
+        require: true,
+        rejectUnauthorized: false // Crucial para Railway
+      } : false
     },
     define: {
-      timestamps: true, 
-      underscored: true, 
+      timestamps: true,
+      underscored: true,
     }
-  }
-);
+});
 
-// Función para probar la conexión
 const checkConnection = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Sequelize: Conexión establecida con PostgreSQL/PostGIS.');
+    console.log('✅ Sequelize: Conexión establecida correctamente.');
   } catch (error) {
-    console.error('❌ Sequelize: No se pudo conectar a la base de datos:', error);
+    console.error('❌ Sequelize: Error de conexión:', error);
   }
 };
 
