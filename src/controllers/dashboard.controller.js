@@ -1,114 +1,116 @@
-const { Consulta, Terrain, User, ModeloML, sequelize } = require('../models');
+const { Consulta, Terrain, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 exports.obtenerDashboard = async (req, res) => {
   try {
-    // Fecha actual y hace 1 mes (para crecimiento aproximado)
     const hoy = new Date();
     const haceUnMes = new Date();
     haceUnMes.setMonth(hoy.getMonth() - 1);
 
-    // 1. Terrenos Registrados (total y crecimiento aproximado)
+    // 1. Terrenos Registrados (Uso de ID para el conteo ya que no hay fecha en terrenos)
     const totalTerrenos = await Terrain.count();
-    const terrenosEsteMes = await Terrain.count({
-      where: sequelize.where(sequelize.fn('DATE', sequelize.col('created_at')), '>=', haceUnMes)
-    });
-    const crecimientoTerrenos = terrenosEsteMes > 0 ? '+12.5%' : '0%';  // Valor fijo o calcular si tienes created_at
-
-    // 2. Usuarios Activos (con al menos 1 consulta este mes)
-    const usuariosActivos = await Consulta.count({
-      distinct: true,
-      col: 'usuario_id',
-      where: sequelize.where(sequelize.fn('DATE', sequelize.col('fecha')), '>=', haceUnMes)
+    
+    // 2. Usuarios Activos (Usando fecha_registro de tu tabla 'usuarios')
+    const usuariosNuevos = await User.count({
+      where: {
+        fecha_registro: { [Op.gte]: haceUnMes }
+      }
     });
 
-    // 3. Zonas Cubiertas (DISTINCT ubicacion_nombre)
+    // 3. Zonas Cubiertas (Basado en la columna ubicacion_nombre de 'terrenos')
     const zonasCubiertas = await Terrain.count({
-      col: sequelize.fn('DISTINCT', sequelize.col('ubicacion_nombre'))
+      distinct: true,
+      col: 'ubicacion_nombre'
     });
 
-    // 4. Precisión IA (promedio de precision_modelo)
+    // 4. Precisión IA (Promedio de precision_modelo en la tabla 'consultas')
     const precisionIA = await Consulta.findOne({
-      attributes: [[sequelize.fn('AVG', sequelize.col('precision_modelo')), 'promedio']]
+      attributes: [[sequelize.fn('AVG', sequelize.col('precision_modelo')), 'promedio']],
+      raw: true
     });
-    const precisionPromedio = precisionIA ? parseFloat(precisionIA.get('promedio')).toFixed(1) + '%' : '0%';
+    const precisionPromedio = precisionIA?.promedio 
+      ? (parseFloat(precisionIA.promedio) * 100).toFixed(1) + '%' 
+      : '0%';
 
-    // 5. Precisión mensual (gráfico de línea)
+    // 5. Precisión mensual (Tendencia usando la columna 'fecha' de 'consultas')
     const precisionMensual = await Consulta.findAll({
       attributes: [
         [sequelize.fn('DATE_TRUNC', 'month', sequelize.col('fecha')), 'mes'],
         [sequelize.fn('AVG', sequelize.col('precision_modelo')), 'promedio_precision']
       ],
       group: ['mes'],
-      order: ['mes'],
+      order: [[sequelize.literal('mes'), 'ASC']],
       raw: true
     });
 
-    // 6. Zonas con más registros (barras)
+    // 6. Zonas con más actividad (Corregido según el alias del error)
     const zonasConMasRegistros = await Consulta.findAll({
       attributes: [
-        [sequelize.col('Terreno.ubicacion_nombre'), 'zona'],
+        // Usamos el alias exacto que Sequelize ya tiene: "Terreno"
+        [sequelize.col('Terreno.ubicacion_nombre'), 'zona'], 
         [sequelize.fn('COUNT', sequelize.col('Consulta.id')), 'cantidad']
       ],
       include: [{
         model: Terrain,
+        as: 'Terreno', 
         attributes: []
       }],
-      group: ['Terreno.ubicacion_nombre'],
+      group: [sequelize.col('Terreno.ubicacion_nombre')],
       order: [[sequelize.fn('COUNT', sequelize.col('Consulta.id')), 'DESC']],
       limit: 6,
       raw: true
     });
 
-    // 7. Últimos 5 terrenos recientes (orden por ID DESC)
+    // 7. Últimos 5 terrenos 
     const terrenosRecientes = await Terrain.findAll({
       limit: 5,
       order: [['id', 'DESC']],
-      attributes: ['ubicacion_nombre', 'area_hectareas', 'tipo_suelo']
+      attributes: ['ubicacion_nombre', 'area_hectareas', 'tipo_suelo'],
+      raw: true
     });
 
-    // 8. Distribución de tipos de suelo (donut)
+    // 8. Distribución de tipos de suelo (Donut chart)
     const tiposSuelo = await Terrain.findAll({
       attributes: [
         'tipo_suelo',
-        [sequelize.fn('COUNT', sequelize.col('tipo_suelo')), 'cantidad']
+        [sequelize.fn('COUNT', sequelize.col('id')), 'cantidad']
       ],
       group: ['tipo_suelo'],
       raw: true
     });
 
-    const totalSuelos = await Terrain.count();
-    const tiposSueloPorcentaje = tiposSuelo.map(row => ({
-      tipo: row.tipo_suelo || 'Sin especificar',
-      porcentaje: ((row.cantidad / totalSuelos) * 100).toFixed(0) + '%'
-    }));
-
-    // Respuesta completa para el frontend
+    // Formateo de respuesta para el Frontend
     res.status(200).json({
       kpis: {
         terrenosRegistrados: totalTerrenos,
-        crecimientoTerrenos,
-        usuariosActivos,
+        usuariosNuevos,
         zonasCubiertas,
         precisionIA: precisionPromedio
       },
       precisionMensual: precisionMensual.map(row => ({
-        mes: new Date(row.mes).toLocaleString('es-ES', { month: 'short' }),
-        promedio_precision: parseFloat(row.promedio_precision).toFixed(2)
+        mes: row.mes ? new Date(row.mes).toLocaleString('es-ES', { month: 'short' }) : 'S/N',
+        promedio: (parseFloat(row.promedio_precision || 0) * 100).toFixed(2)
       })),
-      zonasConMasRegistros: zonasConMasRegistros.map(row => ({
-        zona: row.zona,
+      zonasMasActivas: zonasConMasRegistros.map(row => ({
+        zona: row.zona || 'Desconocida',
         cantidad: parseInt(row.cantidad)
       })),
       terrenosRecientes: terrenosRecientes.map(t => ({
         zona: t.ubicacion_nombre,
         area: t.area_hectareas,
-        tipo_suelo: t.tipo_suelo
+        suelo: t.tipo_suelo
       })),
-      tiposSueloPorcentaje
+      distribucionSuelo: tiposSuelo.map(row => ({
+        tipo: row.tipo_suelo || 'Otros',
+        cantidad: parseInt(row.cantidad)
+      }))
     });
+
   } catch (error) {
-    console.error('Error en dashboard:', error);
-    res.status(500).json({ message: "Error al generar estadísticas", error: error.message });
+    console.error('Error detallado en dashboard:', error);
+    res.status(500).json({ 
+      message: "Error al generar estadísticas", 
+      error: error.message 
+    });
   }
 };
