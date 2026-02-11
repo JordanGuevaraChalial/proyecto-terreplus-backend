@@ -2,6 +2,7 @@ const authJwt = require("../middleware/authJwt");
 const controller = require("../controllers/history.controller");
 const userController = require("../controllers/user.controller"); 
 const factorController = require("../controllers/factor.controller");
+const authJwt = require("../middleware/authJwt");
 
 module.exports = function(app) {
   // Rutas existentes de historial

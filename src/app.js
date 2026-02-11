@@ -22,6 +22,7 @@ require('./routes/terrain.routes')(app);
 require('./routes/ml.routes')(app);
 require('./routes/user.routes')(app);
 require('./routes/factor.routes')(app);
+require('./routes/dashboard.routes')(app);
 
 // --- LOG DE DEPURACIÓN ---
 setTimeout(() => {
