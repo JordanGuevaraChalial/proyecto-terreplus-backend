@@ -2,18 +2,19 @@ const { User } = require("../models");
 
 const checkDuplicateEmail = async (req, res, next) => {
   try {
-    // Verificar si el email ya existe en la tabla Usuarios
-    const user = await User.findOne({
-      where: { email: req.body.email }
-    });
-
-    if (user) {
-      return res.status(400).send({ message: "¡Error! El correo electrónico ya está en uso." });
+    if (!req.body || !req.body.email) {
+      return res.status(400).send({ 
+        message: "No se recibió el correo electrónico en la petición." 
+      });
     }
 
+    const user = await User.findOne({ where: { email: req.body.email } });
+    if (user) {
+      return res.status(400).send({ message: "¡Error! El email ya está en uso." });
+    }
     next();
   } catch (error) {
-    res.status(500).send({ message: error.message});
+    res.status(500).send({ message: error.message });
   }
 };
 
